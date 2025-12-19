@@ -1,7 +1,6 @@
 import 'dart:async';
 
 import 'package:appihv/components/general/shinny_button.dart';
-import 'package:appihv/components/general/shinny_alt_button.dart';
 import 'package:appihv/components/general/toast.dart';
 
 import 'package:appihv/dtos/users.dart';
@@ -9,6 +8,9 @@ import 'package:appihv/service/pocketbase.service.dart';
 import 'package:appihv/theme/app_theme.dart';
 import 'package:flutter/material.dart';
 
+import '../components/profile_specific/buttons/logout_button.dart';
+import '../components/profile_specific/buttons/notification_button.dart';
+import '../components/profile_specific/buttons/theme_button.dart';
 import '../service/data_provider.service.dart';
 import 'register_screen.dart';
 
@@ -94,110 +96,98 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   : const Text('No se pudo cargar el perfil.'),
             )
           : Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
+              child: ListView(
                 children: [
-
-
-                  Container(
-                    margin: const EdgeInsets.only(bottom: 20),
-                    width: 150,
-                    height: 150,
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      boxShadow: [
-                        BoxShadow(
-                          color: theme.colorScheme.primary,
-                          blurRadius: 20,
-                          spreadRadius: 2,
+                  Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      const SizedBox(height: 30),
+                      Container(
+                        margin: const EdgeInsets.only(bottom: 20),
+                        width: 150,
+                        height: 150,
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          boxShadow: [
+                            BoxShadow(
+                              color: theme.colorScheme.primary,
+                              blurRadius: 20,
+                              spreadRadius: 2,
+                            ),
+                          ],
                         ),
-                      ],
-                    ),
-                    child: CircleAvatar(
-                      radius: 75,
-                      backgroundColor: theme.colorScheme.surface,
-                      backgroundImage: usuario.avatar.isNotEmpty
-                          ? NetworkImage(usuario.avatar)
-                          : null,
-                      child: usuario.avatar.isEmpty
-                          ? Icon(
-                              Icons.person,
-                              size: 64,
-                              color: theme.colorScheme.onSurfaceVariant,
-                            )
-                          : null,
-                    ),
-                  ),
-                  const SizedBox(height: 10),
-                  Text(
-                    usuario.name,
-                    style: TextStyle(
-                      fontSize: 24,
-                      fontWeight: FontWeight.bold,
-                      color: theme.colorScheme.onBackground,
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  Text(
-                    usuario.email,
-                    style: TextStyle(
-                      fontSize: 16,
-                      color: theme.colorScheme.onSurfaceVariant,
-                    ),
-                  ),
-                  const SizedBox(height: 30),
-                  AnimatedBuilder(
-                    animation: widget.themeController,
-                    builder: (context, _) {
-                      final isDark = widget.themeController.mode == AppThemeMode.dark;
-                      return ShinnyButton(
-                        onPressed: () {
-                          final targetMode =
-                          isDark ? AppThemeMode.light : AppThemeMode.dark;
-                          widget.themeController.setMode(targetMode);
+                        child: CircleAvatar(
+                          radius: 75,
+                          backgroundColor: theme.colorScheme.surface,
+                          backgroundImage: usuario.avatar.isNotEmpty
+                              ? NetworkImage(usuario.avatar)
+                              : null,
+                          child: usuario.avatar.isEmpty
+                              ? Icon(
+                                  Icons.person,
+                                  size: 64,
+                                  color: theme.colorScheme.onSurfaceVariant,
+                                )
+                              : null,
+                        ),
+                      ),
+                      const SizedBox(height: 10),
+                      Text(
+                        usuario.name,
+                        style: TextStyle(
+                          fontSize: 24,
+                          fontWeight: FontWeight.bold,
+                          color: theme.colorScheme.onBackground,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        usuario.email,
+                        style: TextStyle(
+                          fontSize: 16,
+                          color: theme.colorScheme.onSurfaceVariant,
+                        ),
+                      ),
+                      const SizedBox(height: 30),
+                      AnimatedBuilder(
+                        animation: widget.themeController,
+                        builder: (context, _) {
+                          final isDark = widget.themeController.mode == AppThemeMode.dark;
+                          return ThemeButton(isDark: isDark, widget: widget);
                         },
-                        text: isDark ? 'Modo claro' : 'Modo oscuro',
-                        icons: isDark?Icons.light_mode:Icons.dark_mode,
+                      ),
+                      const SizedBox(height: 24),
+
+                      NotificationButton(),
+                      const SizedBox(height: 24),
+                      ShinnyButton(
+                        onPressed: _loading
+                            ? null
+                            : () async {
+                                final bool? updated = await Navigator.of(context)
+                                    .push<bool>(
+                                      MaterialPageRoute(
+                                        builder: (_) =>
+                                            RegisterScreen(usuario: usuario),
+                                      ),
+                                    );
+
+                                if (updated == true && mounted) {
+                                  await _refreshUser();
+                                  if (!mounted) return;
+                                  personalizedToast(context, 'Perfil actualizado.');
+                                }
+                              },
+                        text: 'Editar perfil',
+                        icons: Icons.edit_outlined,
                         width: 220,
                         height: 48,
-                      );
-                    },
-                  ),
-                  const SizedBox(height: 24),
-                  ShinnyButton(
-                    onPressed: _loading
-                        ? null
-                        : () async {
-                            final bool? updated = await Navigator.of(context)
-                                .push<bool>(
-                                  MaterialPageRoute(
-                                    builder: (_) =>
-                                        RegisterScreen(usuario: usuario),
-                                  ),
-                                );
+                        isLoading: _loading,
+                      ),
+                      const SizedBox(height: 24),
 
-                            if (updated == true && mounted) {
-                              await _refreshUser();
-                              if (!mounted) return;
-                              personalizedToast(context, 'Perfil actualizado.');
-                            }
-                          },
-                    text: 'Editar perfil',
-                    icons: Icons.edit_outlined,
-                    width: 220,
-                    height: 48,
-                    isLoading: _loading,
-                  ),
-                  const SizedBox(height: 24),
-                  ShinnyButton(
-                    alternative: true,
-                    onPressed: () async {
-                      await PBService.logout();
-                    },
-                    text: 'Cerrar sesión',
-                    icons: Icons.logout,
-                    width: 220,
-                    height: 48,
+                      LogoutButton(),
+                    ],
                   ),
                 ],
               ),
@@ -211,3 +201,5 @@ class _ProfileScreenState extends State<ProfileScreen> {
     super.dispose();
   }
 }
+
+

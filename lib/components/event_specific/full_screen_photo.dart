@@ -20,6 +20,7 @@ class FullScreenPhotoGallery extends StatefulWidget {
     required this.isActive,
     required this.creatorId,
     required this.eventTitle,
+    this.allowDelete = true,
   });
 
   final List<String> fotos;
@@ -28,6 +29,7 @@ class FullScreenPhotoGallery extends StatefulWidget {
   final bool isActive;
   final String creatorId;
   final String eventTitle;
+  final bool allowDelete;
 
   @override
   State<FullScreenPhotoGallery> createState() => _FullScreenPhotoGalleryState();
@@ -40,6 +42,7 @@ class _FullScreenPhotoGalleryState extends State<FullScreenPhotoGallery> {
   bool _busy = false;
 
   bool get _isCreator => PBService.actualUser?.id == widget.creatorId;
+  bool get _canDelete => widget.allowDelete && _isCreator;
 
   @override
   void initState() {
@@ -96,7 +99,7 @@ class _FullScreenPhotoGalleryState extends State<FullScreenPhotoGallery> {
   }
 
   Future<void> _deleteCurrent() async {
-    if (!_isCreator || _busy || _fotos.isEmpty) return;
+    if (!_canDelete || _busy || _fotos.isEmpty) return;
     final theme = Theme.of(context);
     final bool? confirm = await showDialog<bool>(
       context: context,
@@ -196,7 +199,7 @@ class _FullScreenPhotoGalleryState extends State<FullScreenPhotoGallery> {
             onPressed: _busy ? null : _downloadCurrent,
             icon: const Icon(Icons.download),
           ),
-          if (_isCreator)
+          if (_canDelete)
             IconButton(
               tooltip: 'Eliminar',
               color: theme.colorScheme.onPrimary,

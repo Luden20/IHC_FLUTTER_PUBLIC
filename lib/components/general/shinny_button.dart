@@ -67,15 +67,17 @@ class ShinnyButton extends StatelessWidget {
           Icon(icons, color: colorScheme.onPrimary,size: 20,),
           const SizedBox(width: 8,),
         ],
-        Flexible(
-          child: Text(
-            text,
-            textAlign: TextAlign.center,
-            maxLines: expand ? 2 : 1,
-            overflow: TextOverflow.ellipsis,
-            style: textStyle,
+        if (text!='')...[
+          Flexible(
+            child: Text(
+              text,
+              textAlign: TextAlign.center,
+              maxLines: expand ? 2 : 1,
+              overflow: TextOverflow.ellipsis,
+              style: textStyle,
+            ),
           ),
-        ),
+        ],
       ],
     );
     Widget btn = ElevatedButton(

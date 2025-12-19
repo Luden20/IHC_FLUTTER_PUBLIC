@@ -1,8 +1,5 @@
 import 'dart:async';
-import 'dart:io';
-
-import 'package:appihv/components/general/toast.dart';
-import 'package:appihv/screens/KeepAliveScreen.dart';
+import 'package:appihv/screens/keep_alive_screen.dart';
 import 'package:appihv/screens/create_screen.dart';
 import 'package:appihv/screens/event_detail_screen.dart';
 import 'package:appihv/screens/home_screen.dart';
@@ -198,18 +195,31 @@ class MyHomePageState extends State<MyHomePage> {
   void _handleEventCreated(String eventId) {
     if (!PBService.isLoggedIn) return;
     DataProvider.notifyEventoActualizado(eventId);
-    unawaited(_showEventDetail(eventId, ensureHomeTab: true));
+    unawaited(
+      _showEventDetail(
+        eventId,
+        ensureHomeTab: true,
+        celebrateOnDetail: true,
+      ),
+    );
   }
 
   void _handleEventJoined(String eventId) {
     if (!PBService.isLoggedIn) return;
     DataProvider.notifyEventoActualizado(eventId);
-    unawaited(_showEventDetail(eventId, ensureHomeTab: true));
+    unawaited(
+      _showEventDetail(
+        eventId,
+        ensureHomeTab: true,
+        celebrateOnDetail: true,
+      ),
+    );
   }
 
   Future<void> _showEventDetail(
     String eventId, {
     bool ensureHomeTab = false,
+    bool celebrateOnDetail = false,
   }) async {
     if (!mounted) return;
 
@@ -234,7 +244,12 @@ class MyHomePageState extends State<MyHomePage> {
 
     navigator.popUntil((route) => route.isFirst);
     await navigator.push(
-      MaterialPageRoute(builder: (_) => EventDetailScreen(id: eventId)),
+      MaterialPageRoute(
+        builder: (_) => EventDetailScreen(
+          id: eventId,
+          showConfettiOnLoad: celebrateOnDetail,
+        ),
+      ),
     );
   }
 
@@ -242,6 +257,7 @@ class MyHomePageState extends State<MyHomePage> {
     final navigator = _homeNavigatorKey.currentState;
     navigator?.popUntil((route) => route.isFirst);
   }
+
 
   void _updateTab(screens targetScreen, {bool animate = false}) {
     if (currentScreen == targetScreen) return;

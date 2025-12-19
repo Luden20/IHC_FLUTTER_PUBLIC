@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:share_plus/share_plus.dart';
 
-import '../general/shinny_button.dart';
+import '../../general/shinny_button.dart';
 
 class PlainCodeModalButton extends StatelessWidget {
   const PlainCodeModalButton({super.key, required this.code});

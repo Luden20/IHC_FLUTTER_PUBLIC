@@ -9,6 +9,7 @@ class EventoCompletoDTO {
   final String Titulo;
   final String Descripcion;
   final String Portada;
+  final String PortadaCruda;
   final String Fecha;
   final String Lugar;
   final Coordenadas? GeoLugar;
@@ -26,6 +27,7 @@ class EventoCompletoDTO {
     required this.Titulo,
     required this.Descripcion,
     required this.Portada,
+    required this.PortadaCruda,
     required this.Fecha,
     required this.Lugar,
     required this.GeoLugar,
@@ -56,6 +58,7 @@ class EventoCompletoDTO {
       Titulo: record.getStringValue("Titulo"),
       Descripcion: record.getStringValue("Descripcion"),
       Portada: PBService.fileUrl(record, record.getStringValue("Portada")),
+      PortadaCruda: record.getStringValue("Portada"),
       Fecha: record.getStringValue("Fecha"),
       Lugar: record.getStringValue("Lugar"),
       GeoLugar: Coordenadas.tryParse(record.get('GeoLugar')),

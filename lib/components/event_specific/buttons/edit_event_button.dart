@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
-import '../../screens/edit_event_screen.dart';
-import '../general/shinny_button.dart';
+import '../../../screens/edit_event_screen.dart';
+import '../../general/shinny_button.dart';
 
 class EditEventButton extends StatelessWidget {
   const EditEventButton({

@@ -1,3 +1,4 @@
+import 'package:appihv/components/event_specific/party_hat_fallback.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import '../../dtos/evento_cabecera.dto.dart';
@@ -40,7 +41,7 @@ class _EventoItemState extends State<EventoItem> {
     final bool hasImage = evento.Portada.isNotEmpty;
 
     return GestureDetector(
-      onTap: () => widget.onOpenDetail(evento.id),
+      onTap: hasImage ? () => widget.onOpenDetail(evento.id) : null,
       child: Card(
         color: Colors.transparent,
         elevation: 10,
@@ -58,7 +59,7 @@ class _EventoItemState extends State<EventoItem> {
                 Positioned.fill(
                   child: Container(
                     color: hasImage
-                        ? theme.colorScheme.primary.withOpacity(0.1)
+                        ? theme.colorScheme.primary.withOpacity(0.001)
                         : Colors.transparent,
                   ),
                 ),
@@ -88,7 +89,7 @@ class _EventoItemState extends State<EventoItem> {
 
                 /// Placeholder cuando NO hay imagen
                 if (!hasImage)
-                  const Positioned.fill(child: _PartyHatFallback()),
+                  const Positioned.fill(child: PartyHatFallback()),
 
                 /// Gradiente para mejorar legibilidad del texto
                 Positioned.fill(
@@ -169,20 +170,3 @@ class _EventoItemState extends State<EventoItem> {
   }
 }
 
-class _PartyHatFallback extends StatelessWidget {
-  const _PartyHatFallback();
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    return Container(
-      color: theme.colorScheme.surfaceVariant.withOpacity(0.3),
-      alignment: Alignment.center,
-      child: Icon(
-        Icons.celebration,
-        size: 80,
-        color: theme.colorScheme.primary,
-      ),
-    );
-  }
-}

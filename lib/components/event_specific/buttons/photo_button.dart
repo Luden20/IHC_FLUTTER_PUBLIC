@@ -4,18 +4,18 @@ import 'package:image_picker/image_picker.dart';
 import 'package:http/http.dart' show MultipartFile;
 import 'package:flutter/foundation.dart';
 
-import '../general/shinny_button.dart';
+import '../../general/shinny_button.dart';
 
-class Photobutton extends StatefulWidget {
-  const Photobutton({super.key, required this.idEvento, this.onUploaded});
+class PhotoButton extends StatefulWidget {
+  const PhotoButton({super.key, required this.idEvento, this.onUploaded});
   final String idEvento;
   final VoidCallback? onUploaded;
 
   @override
-  State<Photobutton> createState() => _PhotobuttonState();
+  State<PhotoButton> createState() => _PhotoButtonState();
 }
 
-class _PhotobuttonState extends State<Photobutton> {
+class _PhotoButtonState extends State<PhotoButton> {
   bool _uploading = false;
 
   Future<void> _takePhoto() async {

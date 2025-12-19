@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_confetti/flutter_confetti.dart';
 
-import '../../service/data_provider.service.dart';
-import '../general/shinny_button.dart';
-import '../general/toast.dart';
+import '../../../service/data_provider.service.dart';
+import '../../general/shinny_button.dart';
+import '../../general/toast.dart';
 
 class ActivateEventButton extends StatefulWidget {
   const ActivateEventButton({

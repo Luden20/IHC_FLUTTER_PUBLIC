@@ -3,7 +3,6 @@ import 'dart:io';
 import 'package:appihv/components/general/app_text_form_field.dart';
 import 'package:appihv/components/general/form_section_label.dart';
 import 'package:appihv/components/general/shinny_button.dart';
-import 'package:appihv/components/general/shinny_alt_button.dart';
 import 'package:appihv/service/pocketbase.service.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';

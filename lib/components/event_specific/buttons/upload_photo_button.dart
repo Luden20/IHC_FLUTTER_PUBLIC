@@ -5,7 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:http/http.dart' show MultipartFile;
 
-import '../general/shinny_button.dart';
+import '../../general/shinny_button.dart';
 
 class UploadPhotoButton extends StatefulWidget {
   const UploadPhotoButton({super.key, required this.idEvento, this.onUploaded});

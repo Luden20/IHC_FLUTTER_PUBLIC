@@ -4,7 +4,7 @@ import 'package:appihv/service/pocketbase.service.dart';
 import 'package:flutter/material.dart';
 import 'package:pocketbase/pocketbase.dart';
 
-import '../general/shinny_button.dart';
+import '../../general/shinny_button.dart';
 
 class DeletePhotosButton extends StatefulWidget {
   const DeletePhotosButton({

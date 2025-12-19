@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 
 Widget CoverImage(String url, ThemeData theme) {
-  final borderRadius = BorderRadius.circular(18);
+  final borderRadius = BorderRadius.circular(8);
 
   Widget placeholder() => ClipRRect(
     borderRadius: borderRadius,

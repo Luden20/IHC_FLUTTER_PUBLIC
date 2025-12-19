@@ -6,9 +6,9 @@ import 'package:image_picker/image_picker.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:http/http.dart' show MultipartFile;
 
+import '../components/event_specific/party_hat_fallback.dart';
 import '../components/general/app_text_form_field.dart';
 import '../components/general/shinny_button.dart';
-import '../components/general/shinny_alt_button.dart';
 import '../dtos/coordenadas.dto.dart';
 import '../service/data_provider.service.dart';
 import '../service/pocketbase.service.dart';
@@ -82,7 +82,8 @@ class _EditEventScreenState extends State<EditEventScreen> {
         _descriptionCtrl.text = evento.Descripcion;
         _placeCtrl.text = evento.Lugar;
         _date = normalizedDate;
-        _currentCoverUrl = evento.Portada;
+        _currentCoverUrl =
+            _isValidCoverUrl(evento.Portada) ? evento.Portada : null;
         _geoLugar = evento.GeoLugar;
         _geoLugarDirty = false;
       });
@@ -103,7 +104,6 @@ class _EditEventScreenState extends State<EditEventScreen> {
     final initial = _geoLugar == null
         ? null
         : LatLng(_geoLugar!.Latitud, _geoLugar!.Longitud);
-    print('initial: $initial');
     final result = await PlacePickerService.pickPlace(
       context: context,
       initialPosition: initial,
@@ -222,14 +222,32 @@ class _EditEventScreenState extends State<EditEventScreen> {
     }
   }
 
+  bool _isValidCoverUrl(String? url) {
+    if (url == null) return false;
+    final trimmed = url.trim();
+    if (trimmed.isEmpty) return false;
+    final uri = Uri.tryParse(trimmed);
+    if (uri == null) return false;
+    if (uri.pathSegments.isEmpty) return false;
+    return uri.pathSegments.last.isNotEmpty;
+  }
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     return Scaffold(
       backgroundColor: Colors.transparent,
       appBar: AppBar(
-        title: const Text('Editar evento'),
         backgroundColor: theme.colorScheme.surface,
+        title: Text(
+          'Editar evento',
+          style: TextStyle(
+            color: theme.colorScheme.onSurface,
+            fontWeight: FontWeight.bold,
+            letterSpacing: 1.2,
+          ),
+        ),
+        centerTitle: true,
         leading: BackButton(
           onPressed: () {
             Navigator.of(context).maybePop();
@@ -247,9 +265,19 @@ class _EditEventScreenState extends State<EditEventScreen> {
               child: ListView(
                 padding: const EdgeInsets.all(20),
                 children: [
+                  Text(
+                    'Hora de la fiesta!!!',
+                    style: TextStyle(
+                      fontSize: 32,
+                      fontWeight: FontWeight.bold,
+                      color: theme.colorScheme.secondary,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                  const SizedBox(height: 20),
                   AppTextFormField(
                     controller: _titleCtrl,
-                    label: 'Titulo',
+                    label: 'Título',
                     icon: Icons.event,
                     validator: (value) {
                       if (value == null || value.trim().isEmpty) {
@@ -258,18 +286,17 @@ class _EditEventScreenState extends State<EditEventScreen> {
                       return null;
                     },
                   ),
-                  const SizedBox(height: 30),
+                  const SizedBox(height: 20),
                   AppTextFormField(
                     controller: _descriptionCtrl,
                     maxLines: 3,
                     keyboardType: TextInputType.multiline,
-                    label: 'Descripcion',
+                    label: 'Descripción (Opcional)',
                     icon: Icons.description_outlined,
                   ),
-                  const SizedBox(height: 30),
+                  const SizedBox(height: 20),
                   Row(
                     children: [
-
                       Expanded(
                         child: Container(
                           padding: const EdgeInsets.symmetric(
@@ -278,41 +305,40 @@ class _EditEventScreenState extends State<EditEventScreen> {
                           ),
                           decoration: BoxDecoration(
                             color: theme.colorScheme.surface,
-                            borderRadius: BorderRadius.circular(12),
-                            border: Border.all(
-                              color: theme.colorScheme.outline,
-                            ),
+                            borderRadius: BorderRadius.circular(15),
+                            border: Border.all(color: theme.colorScheme.outline),
                           ),
-                          child: Text(
-                            _date == null
-                                ? 'Sin seleccionar'
-                                : formatLocalYmdHHmm(_date!),
-                            style: TextStyle(
-                              color: _date == null
-                                  ? theme.disabledColor
-                                  : theme.colorScheme.onSurface,
-                            ),
+                          child: Row(
+                            children: [
+                              const Icon(Icons.date_range),
+                              const SizedBox(width: 12),
+                              Expanded(
+                                child: Text(
+                                  _date == null
+                                      ? 'Sin seleccionar'
+                                      : formatLocalYmdHHmm(_date!),
+                                  style: theme.textTheme.bodyMedium,
+                                ),
+                              ),
+                            ],
                           ),
                         ),
                       ),
-                      const SizedBox(width: 20),
-                      SizedBox(
-                        width: 140,
-                        child: ShinnyButton(
-                          onPressed: _pickDate,
-                          text: 'Elegir',
-                          expand: false,
-                          icons: Icons.event,
-                          height: 52,
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 20,
-                            vertical: 12,
-                          ),
+                      const SizedBox(width: 12),
+                      ShinnyButton(
+                        onPressed: _pickDate,
+                        text: 'Elegir',
+                        expand: false,
+                        icons: Icons.event,
+                        height: 52,
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 20,
+                          vertical: 12,
                         ),
                       ),
                     ],
                   ),
-                  const SizedBox(height: 30),
+                  const SizedBox(height: 20),
                   AppTextFormField(
                     controller: _placeCtrl,
                     label: 'Lugar (opcional)',
@@ -320,115 +346,142 @@ class _EditEventScreenState extends State<EditEventScreen> {
                     suffixIcon: IconButton(
                       tooltip: 'Limpiar texto',
                       icon: const Icon(Icons.clear),
-                      onPressed: _clearPlaceText,
-                    ),
+                        onPressed: _clearPlaceText,
+                      ),
                   ),
-                  const SizedBox(height: 30),
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 12,
-                      vertical: 16,
-                    ),
-                    decoration: BoxDecoration(
-                      color: theme.colorScheme.surface,
-                      borderRadius: BorderRadius.circular(12),
-                      border: Border.all(color: theme.colorScheme.outline),
-                    ),
-                    child: Row(
-                      children: [
-                        Icon(Icons.location_on_outlined,
-                            color: theme.colorScheme.secondary),
-                        const SizedBox(width: 12),
-                        Expanded(
-                          child: Text(
-                            (_geoLugar == null || (_geoLugar?.Latitud == 0 && _geoLugar?.Longitud == 0))
-                                ? 'Lugar en el mapa (Opcional)'
-                                : 'Lugar seleccionado'
-                            ,
-                            style: theme.textTheme.bodyMedium,
+                  const SizedBox(height: 20),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Expanded(
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 12,
+                            vertical: 16,
+                          ),
+                          decoration: BoxDecoration(
+                            color: theme.colorScheme.surface,
+                            borderRadius: BorderRadius.circular(15),
+                            border: Border.all(color: theme.colorScheme.outline),
+                          ),
+                          child: Row(
+                            children: [
+                              Icon(Icons.location_on_outlined,
+                                  color: theme.colorScheme.secondary),
+                              const SizedBox(width: 12),
+                              Expanded(
+                                child: Text(
+                                  (_geoLugar != null &&
+                                          (_geoLugar?.Latitud != 0 ||
+                                              _geoLugar?.Longitud != 0))
+                                      ? 'Geo-ubicación seleccionada'
+                                      : 'Geo-ubicación (Opcional)',
+                                  style: theme.textTheme.bodyMedium,
+                                ),
+                              ),
+                              if (_geoLugar != null &&
+                                  (_geoLugar?.Latitud != 0 ||
+                                      _geoLugar?.Longitud != 0))
+                                IconButton(
+                                  tooltip: 'Quitar coordenadas',
+                                  icon: const Icon(Icons.clear),
+                                  onPressed: _clearGeoLugar,
+                                ),
+                            ],
                           ),
                         ),
-                        ShinnyButton(onPressed:_pickGeoLugar , text: '',expand: false,icons: Icons.map_outlined,),
-                        if (_geoLugar != null)
-                          IconButton(
-                            tooltip: 'Quitar coordenadas',
-                            icon: const Icon(Icons.clear),
-                            onPressed: _clearGeoLugar,
-                          ),
-                      ],
-                    ),
+                      ),
+                      const SizedBox(width: 12),
+                      ShinnyButton(
+                        onPressed: _pickGeoLugar,
+                        text: 'Elegir',
+                        expand: false,
+                        icons: Icons.map_outlined,
+                      ),
+                    ],
                   ),
 
-                  const SizedBox(height: 30),
+                  const SizedBox(height: 20),
                   Container(
                     padding: const EdgeInsets.all(12),
-                    decoration: BoxDecoration(
-                      color: theme.colorScheme.surface,
-                      borderRadius: BorderRadius.circular(12),
-                      border: Border.all(color: theme.colorScheme.outline),
-                    ),
                     child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
+                        ShinnyButton(
+                          onPressed: _pickCover,
+                          text: _cover == null ? 'Seleccionar' : 'Cambiar',
+                          icons: Icons.image_outlined,
+                          expand: false,
+                          height: 52,
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 20,
+                            vertical: 12,
+                          ),
+                        ),
+                        const SizedBox(width: 12),
                         if (_cover != null)
                           Padding(
-                            padding: const EdgeInsets.only(right: 12),
+                            padding: const EdgeInsets.only(left: 12),
                             child: ClipRRect(
                               borderRadius: BorderRadius.circular(10),
                               child: Image.file(
                                 File(_cover!.path),
-                                width: 72,
-                                height: 72,
+                                width: 100,
+                                height: 100,
                                 fit: BoxFit.cover,
                               ),
                             ),
                           )
-                        else if (_currentCoverUrl != null &&
-                            _currentCoverUrl!.isNotEmpty)
+                        else if (_currentCoverUrl != null)
                           Padding(
-                            padding: const EdgeInsets.only(right: 12),
+                            padding: const EdgeInsets.only(left: 12),
                             child: ClipRRect(
                               borderRadius: BorderRadius.circular(10),
                               child: Image.network(
                                 _currentCoverUrl!,
-                                width: 72,
-                                height: 72,
+                                width: 100,
+                                height: 100,
                                 fit: BoxFit.cover,
                               ),
                             ),
-                          ),
-                        Expanded(
-                          child: ShinnyButton(
-                            onPressed: _pickCover,
-                            text: _cover == null ? 'Seleccionar' : 'Cambiar',
-                            icons: Icons.image_outlined,
-                            height: 52,
-                            expand: true,
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 20,
-                              vertical: 12,
+                          )
+                        else
+                          ClipRRect(
+                            borderRadius: BorderRadius.circular(12),
+                            child: SizedBox(
+                              width: 100,
+                              height: 100,
+                              child: Stack(
+                                children: [
+                                  Positioned.fill(
+                                    child: Container(
+                                      color: theme.colorScheme.primary
+                                          .withOpacity(0.1),
+                                    ),
+                                  ),
+                                  const Positioned.fill(child: PartyHatFallback()),
+                                ],
+                              ),
                             ),
                           ),
-                        ),
+
                       ],
                     ),
                   ),
-                  const SizedBox(height: 40),
+                  const SizedBox(height: 20),
 
                   Center(
                     child: ShinnyButton(
                       alternative: true,
                       onPressed: _loading ? null : _submit,
-                      expand: true,
                       text: 'Guardar cambios',
-                      confetti: true,
                       icons: Icons.edit,
                       isLoading: _loading,
-                      width: 200,
-                      height: 64,
+                      confetti: false,
+                      width: 230,
+                      height: 60,
                     ),
                   ),
-
-
                 ],
               ),
             ),

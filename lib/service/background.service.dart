@@ -1,6 +1,6 @@
 
+import 'package:appihv/service/pocketbase.service.dart';
 import 'package:firebase_core/firebase_core.dart';
-import 'package:flutter_confetti/flutter_confetti.dart';
 import '../components/general/toast.dart';
 import '../firebase_options.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
@@ -15,14 +15,16 @@ void firebaseFMCListener (RemoteMessage message, dynamic messengerKey, dynamic n
   final title = message.notification?.title ?? 'Nuevo mensaje';
   final body = message.notification?.body ?? '';
   if (ctx != null) {
-    final composedMessage = body.isNotEmpty ? '$title: $body' : title;
-    personalizedToast(
-      ctx,
-      composedMessage,
-      messengerState: messengerKey.currentState,
-    );
+    if(PBService.notificationsEnable){
+      final composedMessage = body.isNotEmpty ? '$title: $body' : title;
+      personalizedToast(
+        ctx,
+        composedMessage,
+        messengerState: messengerKey.currentState,
+      );
 
-    showSimpleNotification(title,body,flutterLocalNotificationsPlugin);
+      showSimpleNotification(title,body,flutterLocalNotificationsPlugin);
+    }
   } else {
     if (kDebugMode) {
       debugPrint('⚠️ No hay Scaffold activo');

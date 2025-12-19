@@ -1,30 +1,27 @@
 import 'dart:math' as math;
 
-import 'package:accordion/accordion.dart';
 import 'package:appihv/components/general/shinny_button.dart';
-import 'package:appihv/components/general/shinny_alt_button.dart';
-import 'package:appihv/components/general/toast.dart';
 import 'package:appihv/service/data_provider.service.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import '../../dtos/evento_completo.dto.dart';
 import '../../service/pocketbase.service.dart';
 import '../general/button_wrap.dart';
 import '../general/cover_image.dart';
 import 'info_card.dart' hide Avatar;
-import 'photo_button.dart';
-import 'qr_modal_button.dart';
-import 'plain_code_modal_button.dart';
+import 'buttons/photo_button.dart';
+import 'buttons/qr_modal_button.dart';
+import 'buttons/plain_code_modal_button.dart';
 import '../general/section_title.dart';
-import 'upload_photo_button.dart';
-import 'activate_event_button.dart';
+import 'buttons/upload_photo_button.dart';
+import 'buttons/activate_event_button.dart';
 import '../general/avatar.dart';
-import 'edit_event_button.dart';
+import 'buttons/edit_event_button.dart';
 import 'event_photo_gallery.dart';
-import 'delete_photos.dart';
-import 'download_photos.dart';
+import 'buttons/delete_photos_button.dart';
+import 'buttons/download_photos_button.dart';
 import 'package:flutter_glass_morphism/flutter_glass_morphism.dart';
 import 'package:pocketbase/pocketbase.dart';
+import 'full_screen_photo.dart';
 
 class EventDetail extends StatefulWidget {
   final EventoCompletoDTO evento;
@@ -102,10 +99,29 @@ class _EventDetailState extends State<EventDetail> {
     });
   }
 
+  void _openCover(String portadaUrl) {
+    final trimmed = portadaUrl.trim();
+    if (trimmed.isEmpty) return;
+    Navigator.of(context, rootNavigator: true).push(
+      MaterialPageRoute(
+        builder: (_) => FullScreenPhotoGallery(
+          fotos: [trimmed],
+          initialIndex: 0,
+          eventId: widget.evento.id,
+          isActive: _isActive,
+          creatorId: widget.evento.Creador.id,
+          eventTitle: widget.evento.Titulo,
+          allowDelete: false,
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final evento = widget.evento;
     final theme = Theme.of(context);
+    final hasCover = evento.Portada.trim().isNotEmpty;
 
     return ListView(
       padding: EdgeInsets.all(15),
@@ -133,10 +149,16 @@ class _EventDetailState extends State<EventDetail> {
                     evento,
                   ),
                 ),
-                SizedBox(
-                  width: infoWidth,
-                  child: CoverImage(evento.Portada, theme),
-                ),
+                if(evento.PortadaCruda!="")...[
+                  SizedBox(
+                    width: infoWidth,
+                    child: GestureDetector(
+                      onTap: hasCover ? () => _openCover(evento.Portada) : null,
+                      child: CoverImage(evento.Portada, theme),
+                    ),
+                  ),
+                ],
+
               ],
             );
           },
@@ -275,7 +297,7 @@ class _EventDetailState extends State<EventDetail> {
                   );
                 }, text: "Compartir"),
             if(_isActive)...[
-              Photobutton(idEvento: evento.id, onUploaded: _refreshFotos),
+              PhotoButton(idEvento: evento.id, onUploaded: _refreshFotos),
               UploadPhotoButton(idEvento: evento.id, onUploaded: _refreshFotos,),
               if (PBService.actualUser?.id == evento.Creador.id && _seleccionadas.isNotEmpty)
                 DeletePhotosButton(

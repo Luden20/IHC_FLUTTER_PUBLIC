@@ -1,6 +1,8 @@
 import 'package:appihv/service/data_provider.service.dart';
 import 'package:appihv/service/pocketbase.service.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_confetti/flutter_confetti.dart';
+import 'package:flutter/scheduler.dart';
 import '../components/event_specific/event_detail.dart';
 import '../components/general/shinny_button.dart';
 import '../dtos/evento_completo.dto.dart';
@@ -10,8 +12,13 @@ import 'package:pocketbase/pocketbase.dart';
 
 class EventDetailScreen extends StatefulWidget {
   final String id;
+  final bool showConfettiOnLoad;
 
-  const EventDetailScreen({super.key, required this.id});
+  const EventDetailScreen({
+    super.key,
+    required this.id,
+    this.showConfettiOnLoad = false,
+  });
 
   @override
   State<EventDetailScreen> createState() => _EventDetailScreenState();
@@ -20,6 +27,7 @@ class EventDetailScreen extends StatefulWidget {
 class _EventDetailScreenState extends State<EventDetailScreen> {
   late Future<EventoCompletoDTO> _eventoFuture;
   late final UnsubscribeFunc  unsubscribeHeader;
+  bool _confettiShown = false;
 
   void _initRealtime()async{
     try{
@@ -143,6 +151,21 @@ class _EventDetailScreenState extends State<EventDetailScreen> {
             }
 
             final evento = snapshot.data!;
+
+            if (widget.showConfettiOnLoad && !_confettiShown) {
+              SchedulerBinding.instance.addPostFrameCallback((_) {
+                if (!mounted || _confettiShown) return;
+                setState(() => _confettiShown = true);
+                Confetti.launch(
+                  context,
+                  options: const ConfettiOptions(
+                    particleCount: 100,
+                    spread: 70,
+                    y: 0.6,
+                  ),
+                );
+              });
+            }
 
             return EventDetail(
                 evento: evento,

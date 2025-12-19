@@ -4,7 +4,7 @@ import 'package:pretty_qr_code/pretty_qr_code.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:screenshot/screenshot.dart';
 
-import '../general/shinny_button.dart';
+import '../../general/shinny_button.dart';
 
 class QrModalButton extends StatelessWidget {
   final String qrText;
@@ -44,8 +44,6 @@ class QrModalButton extends StatelessWidget {
                         ),
                       ),
                       const SizedBox(height: 12),
-
-                      // RENDER EN PANTALLA CON FONDO BLANCO
                       Container(
                         color: Theme.of(context).canvasColor, // <- fondo blanco visible desde theme
                         padding: const EdgeInsets.all(8),
@@ -62,7 +60,6 @@ class QrModalButton extends StatelessWidget {
                         children: [
                           TextButton(
                             onPressed: () async {
-                              // Captura un widget con fondo blanco y margen (quiet zone extra)
                               final controller = ScreenshotController();
                               final exportWidget = Container(
                                 color: Theme.of(context).canvasColor,
@@ -73,18 +70,15 @@ class QrModalButton extends StatelessWidget {
                                   errorCorrectLevel: QrErrorCorrectLevel.M,
                                 ),
                               );
-
                               final bytes = await controller.captureFromWidget(
                                 exportWidget,
                                 pixelRatio: 4.0,
                               );
-
                               final file = XFile.fromData(
                                 bytes,
                                 name: 'codigo_qr.png',
                                 mimeType: 'image/png',
                               );
-
                               await SharePlus.instance.share(
                                 ShareParams(
                                   text: 'Escanea este código QR para acceder',
@@ -97,7 +91,6 @@ class QrModalButton extends StatelessWidget {
                           TextButton(
                             onPressed: () => Navigator.of(ctx).pop(),
                             child: const Text('Cerrar'),
-
                           ),
                         ],
                       ),

@@ -2,13 +2,11 @@ import 'package:appihv/components/general/app_text_form_field.dart';
 import 'package:flutter/material.dart';
 import '../components/general/toast.dart';
 import '../components/general/shinny_button.dart';
-import '../components/general/shinny_alt_button.dart';
 
 
 import '../screen_enums.dart';
 import '../service/data_provider.service.dart';
 import 'qr_scanner_screen.dart';
-// Using Theme.of(context).colorScheme
 
 class JoinScreen extends StatefulWidget {
   const JoinScreen({super.key, required this.onEventJoined,required this.onIndexChange});
@@ -42,12 +40,17 @@ class JoinScreenState extends State<JoinScreen> {
   }
 
   Future<void> guardarResultado(String valor) async {
-    final aux = valor.split("=");
-    valor = aux[1];
-    setState(() {
-      _codeController.text = valor;
-    });
-    await joinEvent();
+    try{
+      final aux = valor.split("=");
+      valor = aux[1];
+      setState(() {
+        _codeController.text = valor;
+      });
+      await joinEvent();
+    }catch(e){
+      personalizedToast(context,'Código inválido');
+    }
+
   }
 
   Future<void> joinEvent() async {
@@ -100,62 +103,61 @@ class JoinScreenState extends State<JoinScreen> {
       body: Center(
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 32),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
+          child: ListView(
             children: [
-              // Título
-              Text(
-                'Unirse al Evento',
-                style: TextStyle(
-                  fontSize: 32,
-                  fontWeight: FontWeight.bold,
-                  color: Theme.of(context).colorScheme.secondary,
-                ),
-                textAlign: TextAlign.center,
-              ),
-              const SizedBox(height: 20),
-
-
-              Text(
-                'Ingresa el código para empezar la fiesta',
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                  color: theme.colorScheme.outline,
-                  fontSize: 17,
-                  height: 1.4,
-                ),
-              ),
-
-              const SizedBox(height: 22),
-
-              // Campo de código
-              SizedBox(
-                width: 300,
-                child: AppTextFormField(
-                  controller: _codeController,
-                  textInputAction: TextInputAction.done,
-                  onFieldSubmitted: (_) => joinEvent(),
-                  label: 'Código del evento',
-                  hint: 'Ingresa el código del evento',
-                  icon: Icons.key_outlined,
-                ),
-              ),
-              const SizedBox(height: 40),
-              ShinnyButton(
-                alternative: true,
-                onPressed: joinEvent,
-                text: 'Unirse',
-                confetti: true,
-                icons: Icons.add,
-                width: 200,
-              ),
-              const SizedBox(height: 20),
-              ShinnyButton(
-                onPressed: escanearQR,
-                confetti: true,
-                text: 'Unirse con QR',
-                icons: Icons.qr_code_scanner,
-                width: 200,
+              Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const SizedBox(height: 20),
+                  Text(
+                    'Unirse al Evento',
+                    style: TextStyle(
+                      fontSize: 32,
+                      fontWeight: FontWeight.bold,
+                      color: Theme.of(context).colorScheme.secondary,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                  const SizedBox(height: 20),
+                  Text(
+                    'Ingresa el código para empezar la fiesta',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      color: theme.colorScheme.outline,
+                      fontSize: 17,
+                      height: 1.4,
+                    ),
+                  ),
+                  const SizedBox(height: 22),
+                  SizedBox(
+                    width: 300,
+                    child: AppTextFormField(
+                      controller: _codeController,
+                      textInputAction: TextInputAction.done,
+                      onFieldSubmitted: (_) => joinEvent(),
+                      label: 'Código del evento',
+                      hint: 'Ingresa el código del evento',
+                      icon: Icons.key_outlined,
+                    ),
+                  ),
+                  const SizedBox(height: 40),
+                  ShinnyButton(
+                    alternative: true,
+                    onPressed: joinEvent,
+                    text: 'Unirse',
+                    confetti: false,
+                    icons: Icons.add,
+                    width: 200,
+                  ),
+                  const SizedBox(height: 20),
+                  ShinnyButton(
+                    onPressed: escanearQR,
+                    confetti: false,
+                    text: 'Unirse con QR',
+                    icons: Icons.qr_code_scanner,
+                    width: 200,
+                  ),
+                ],
               ),
             ],
           ),

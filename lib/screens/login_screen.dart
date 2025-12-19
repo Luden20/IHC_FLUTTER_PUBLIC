@@ -3,33 +3,23 @@ import 'dart:async';
 import 'package:appihv/components/general/app_text_form_field.dart';
 import 'package:appihv/components/general/form_section_label.dart';
 import 'package:appihv/components/general/shinny_button.dart';
-import 'package:appihv/components/general/shinny_alt_button.dart';
 import 'package:appihv/screens/register_screen.dart';
 import 'package:appihv/service/pocketbase.service.dart';
+import 'package:appihv/service/pocketbase_oauth_safe.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:pocketbase/pocketbase.dart';
 import 'package:url_launcher/url_launcher.dart';
-
 import '../components/general/toast.dart';
-
-enum _LoginAction { password, google, facebook }
-
-class _LoginOperation {
-  _LoginOperation(this.id, this.action);
-
-  final int id;
-  final _LoginAction action;
-  bool cancelled = false;
-}
-
+import '../service/login_related/login_action.dart';
+import '../service/login_related/login_operation.dart';
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
-
   @override
   State<LoginScreen> createState() => _LoginScreenState();
 }
+
 
 class _LoginScreenState extends State<LoginScreen> with WidgetsBindingObserver {
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
@@ -38,7 +28,7 @@ class _LoginScreenState extends State<LoginScreen> with WidgetsBindingObserver {
   final FocusNode _emailFocus = FocusNode();
   final FocusNode _passwordFocus = FocusNode();
   bool _showPassword = false;
-  _LoginOperation? _operation;
+  LoginOperation? _operation;
   int _operationSeed = 0;
   Timer? _resumeCheckTimer;
 
@@ -67,18 +57,18 @@ class _LoginScreenState extends State<LoginScreen> with WidgetsBindingObserver {
     if (state != AppLifecycleState.resumed) return;
 
     _resumeCheckTimer?.cancel();
-    final _LoginOperation? op = _operation;
+    final LoginOperation? op = _operation;
     if (op == null) return;
-    if (op.action != _LoginAction.google &&
-        op.action != _LoginAction.facebook) {
+    if (op.action != LoginAction.google &&
+        op.action != LoginAction.facebook) {
       return;
     }
-
+    /*
     _resumeCheckTimer = Timer(const Duration(milliseconds: 1200), () {
       if (!mounted || op.cancelled || PBService.isLoggedIn) return;
       if (!identical(_operation, op)) return;
       _cancelOperation(op, message: 'Inicio cancelado. Inténtalo de nuevo.');
-    });
+    });*/
   }
 
   Future<void> _loginWithPassword() async {
@@ -86,19 +76,29 @@ class _LoginScreenState extends State<LoginScreen> with WidgetsBindingObserver {
     if (_isBusy) return;
     FocusScope.of(context).unfocus();
 
-    final op = _startOperation(_LoginAction.password);
+    final op = _startOperation(LoginAction.password);
     final String email = _emailCtrl.text.trim();
     final String password = _passwordCtrl.text;
 
     try {
       await PBService.client
           .collection('users')
-          .authWithPassword(email, password);
+          .authWithPassword(email.trim(), password);
       if (_shouldIgnore(op)) return;
       await _handlePostLogin(op);
     } catch (error) {
       if (_shouldIgnore(op)) return;
-      personalizedToast(context,_errorMessageFor(error));
+      try{
+        final user=await PBService.client.collection('emails').getFirstListItem(
+          'email = "${email.trim()}"',
+        );
+        print(user);
+        personalizedToast(context,'Contraseña incorrecta');
+      }
+      catch(e){
+        print(e.toString());
+        personalizedToast(context,'No existe el usuario');
+      }
     } finally {
       _finishOperation(op);
     }
@@ -116,14 +116,14 @@ class _LoginScreenState extends State<LoginScreen> with WidgetsBindingObserver {
 
   Future<void> _loginWithOAuth({
     required String provider,
-    required _LoginAction action,
+    required LoginAction action,
   }) async {
     if (_isBusy) return;
 
     final op = _startOperation(action);
 
     try {
-      await PBService.client.collection('users').authWithOAuth2(provider, (
+      await PBService.client.collection('users').authWithOAuth2Safe(provider, (
         url,
       ) async {
         var launched = await launchUrl(url, mode: LaunchMode.inAppBrowserView);
@@ -197,18 +197,18 @@ class _LoginScreenState extends State<LoginScreen> with WidgetsBindingObserver {
     return fallback;
   }
 
-  bool _shouldIgnore(_LoginOperation op) => !mounted || op.cancelled;
+  bool _shouldIgnore(LoginOperation op) => !mounted || op.cancelled;
 
-  _LoginOperation _startOperation(_LoginAction action) {
+  LoginOperation _startOperation(LoginAction action) {
     _resumeCheckTimer?.cancel();
-    final op = _LoginOperation(++_operationSeed, action);
+    final op = LoginOperation(++_operationSeed, action);
     setState(() {
       _operation = op;
     });
     return op;
   }
 
-  void _finishOperation(_LoginOperation op) {
+  void _finishOperation(LoginOperation op) {
     if (!mounted || !identical(_operation, op)) return;
     _resumeCheckTimer?.cancel();
     setState(() {
@@ -216,12 +216,12 @@ class _LoginScreenState extends State<LoginScreen> with WidgetsBindingObserver {
     });
   }
 
-  void _cancelOperation(_LoginOperation? op, {String? message}) {
+  void _cancelOperation(LoginOperation? op, {String? message}) {
     if (op == null || op.cancelled) return;
     op.cancelled = true;
     _resumeCheckTimer?.cancel();
 
-    if (op.action != _LoginAction.password) {
+    if (op.action != LoginAction.password) {
       unawaited(
         PBService.client.realtime
             .unsubscribeByPrefix('@oauth2')
@@ -240,7 +240,7 @@ class _LoginScreenState extends State<LoginScreen> with WidgetsBindingObserver {
     }
   }
 
-  Future<void> _handlePostLogin(_LoginOperation op) async {
+  Future<void> _handlePostLogin(LoginOperation op) async {
     try {
       await PBService.loginActions();
       _emailCtrl.text="";
@@ -368,7 +368,7 @@ class _LoginScreenState extends State<LoginScreen> with WidgetsBindingObserver {
                     onPressed: _isBusy ? null : _loginWithPassword,
                     text: 'Iniciar sesión',
                     icons: Icons.lock_open_rounded,
-                    isLoading: _operation?.action == _LoginAction.password,
+                    isLoading: _operation?.action == LoginAction.password,
                     width: 230,
                     height: 48,
                   ),
@@ -416,7 +416,7 @@ class _LoginScreenState extends State<LoginScreen> with WidgetsBindingObserver {
                 SocialLoginButton(
                   text: 'Google',
                   icon: Icons.g_mobiledata,
-                  action: _LoginAction.google,
+                  action: LoginAction.google,
                   provider: 'google',
                 ),
 
@@ -447,7 +447,7 @@ class _LoginScreenState extends State<LoginScreen> with WidgetsBindingObserver {
   Widget SocialLoginButton({
     required String text,
     required IconData icon,
-    required _LoginAction action,
+    required LoginAction action,
     required String provider,
   }) {
     return ShinnyButton(

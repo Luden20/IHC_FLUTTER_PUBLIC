@@ -6,8 +6,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
 import 'package:saver_gallery/saver_gallery.dart';
 
-import '../../service/permissions.service.dart';
-import '../general/shinny_button.dart';
+import '../../../service/permissions.service.dart';
+import '../../general/shinny_button.dart';
 
 class DownloadAllphotosButton extends StatefulWidget {
   const DownloadAllphotosButton({super.key, required this.urls,required this.evento, this.label = 'Descargar'});

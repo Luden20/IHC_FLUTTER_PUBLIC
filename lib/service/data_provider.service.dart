@@ -62,7 +62,7 @@ class DataProvider {
     try {
       final rawEventos = await PBService.client
           .collection('evento_cabecera')
-          .getFullList(expand: 'Creador', sort: '+Fecha,+Activo');
+          .getFullList(expand: 'Creador', sort: '-Fecha,+Activo');
       final eventos = List<EventoCabeceraDTO>.unmodifiable(
         rawEventos.map(EventoCabeceraDTO.fromRecordModel),
       );

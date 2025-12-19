@@ -1,15 +1,13 @@
 import 'dart:io';
-import 'dart:async';
 import 'package:appihv/components/general/toast.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
+
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:http/http.dart' show MultipartFile;
-// Using Theme.of(context).colorScheme directly
-
+import '../components/event_specific/party_hat_fallback.dart';
 import '../components/general/app_text_form_field.dart';
 import '../components/general/shinny_button.dart';
-import '../components/general/shinny_alt_button.dart';
 import '../dtos/coordenadas.dto.dart';
 import '../service/pocketbase.service.dart';
 import '../service/place_picker.service.dart';
@@ -197,8 +195,6 @@ class _CreateScreenState extends State<CreateScreen> {
             ),
 
             const SizedBox(height: 20),
-
-            // 🔸 Campo: Descripción
             AppTextFormField(
               controller: _descCtrl,
               focusNode: _descFocus,
@@ -209,7 +205,7 @@ class _CreateScreenState extends State<CreateScreen> {
               maxLines: 3,
               icon: Icons.description_outlined,
 
-              label: 'Descripción',
+              label: 'Descripción (Opcional)',
             ),
 
             const SizedBox(height: 20),
@@ -228,15 +224,19 @@ class _CreateScreenState extends State<CreateScreen> {
                       borderRadius: BorderRadius.circular(15),
                       border: Border.all(color: theme.colorScheme.outline),
                     ),
-                    child: Text(
-                      _fecha == null
-                          ? 'Sin seleccionar'
-                          : formatLocalYmdHHmm(_fecha!),
-                      style: TextStyle(
-                        color: _fecha == null
-                            ? theme.disabledColor
-                            : theme.colorScheme.onSurface,
-                      ),
+                    child: Row(
+                      children: [
+                        const Icon(Icons.date_range),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Text(
+                            _fecha == null
+                                ? 'Sin fecha'
+                                : formatLocalYmdHHmm(_fecha!),
+                            style: theme.textTheme.bodyMedium,
+                          ),
+                        ),
+                      ],
                     ),
                   ),
                 ),
@@ -274,62 +274,59 @@ class _CreateScreenState extends State<CreateScreen> {
 
             const SizedBox(height: 20),
 
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 16),
-              decoration: BoxDecoration(
-                color: theme.colorScheme.surface,
-                borderRadius: BorderRadius.circular(15),
-                border: Border.all(color: theme.colorScheme.outline),
-              ),
-              child: Row(
-                children: [
-                  Icon(Icons.location_on_outlined,
-                      color: theme.colorScheme.secondary),
-
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: Text(
-                      _geoLugar == null
-                          ? 'Lugar en el mapa (Opcional)'
-                          : 'Lugar seleccionado',
-                      style: theme.textTheme.bodyMedium,
-                    ),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Expanded(child:
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 16,
                   ),
-                  ShinnyButton(onPressed:_pickGeoLugar , text: '',expand: false,icons: Icons.map_outlined,),
-                  if (_geoLugar != null)
-                    IconButton(
-                      tooltip: 'Quitar coordenadas',
-                      icon: const Icon(Icons.clear),
-                      onPressed: _clearGeoLugar,
-                    ),
-                ],
-              ),
+                  decoration: BoxDecoration(
+                    color: theme.colorScheme.surface,
+                    borderRadius: BorderRadius.circular(15),
+                    border: Border.all(color: theme.colorScheme.outline),
+                  ),
+                  child:
+                  Row(
+                    children: [
+                      Icon(Icons.location_on_outlined,
+                          color: theme.colorScheme.secondary),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Text(
+                          _geoLugar == null
+                              ? 'Geo-ubicación (Opcional)'
+                              : 'Geo-ubicación seleccionada',
+                          style: theme.textTheme.bodyMedium,
+                        ),
+                      ),
+                      if (_geoLugar != null)
+                        IconButton(
+                          tooltip: 'Quitar coordenadas',
+                          icon: const Icon(Icons.clear),
+                          onPressed: _clearGeoLugar,
+                        ),
+                    ],
+                  ),
+                ),
+                ),
+                const SizedBox(width: 12),
+
+                ShinnyButton(onPressed:_pickGeoLugar , text: 'Elegir',expand: false,icons: Icons.map_outlined,),
+
+              ],
             ),
 
             const SizedBox(height: 20),
 
             Container(
               padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(
-                color: theme.colorScheme.surface,
-                borderRadius: BorderRadius.circular(15),
-                border: Border.all(color: theme.colorScheme.outline),
-              ),
+
               child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  if (_portada != null)
-                    Padding(
-                      padding: const EdgeInsets.only(right: 12),
-                      child: ClipRRect(
-                        borderRadius: BorderRadius.circular(10),
-                        child: Image.file(
-                          File(_portada!.path),
-                          width: 72,
-                          height: 72,
-                          fit: BoxFit.cover,
-                        ),
-                      ),
-                    ),
                   ShinnyButton(
                     onPressed: _pickPortada,
                     text: _portada == null ? 'Seleccionar' : 'Cambiar',
@@ -341,27 +338,58 @@ class _CreateScreenState extends State<CreateScreen> {
                       vertical: 12,
                     ),
                   ),
+                  if (_portada != null)
+                    Padding(
+                      padding: const EdgeInsets.only(right: 12),
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(10),
+                        child: Image.file(
+                          File(_portada!.path),
+                          width: 100,
+                          height: 100,
+                          fit: BoxFit.cover,
+                        ),
+                      ),
+                    ),
+                  if (_portada==null)...[
+                  ClipRRect(
+                  borderRadius: BorderRadius.circular(12),
+                    child:
+                    SizedBox(
+                      width: 100,
+                      height: 100,
+                      child:Stack(
+                        children: [
+                          Positioned.fill(
+                            child: Container(
+                              color: theme.colorScheme.primary.withOpacity(0.1)
+                            ),
+                          ),
+                          const Positioned.fill(child: PartyHatFallback()),
+                        ],
+                      ),
+                    )
+                  )
+                    ]
+
                 ],
               ),
             ),
 
-            const SizedBox(height: 30),
+            const SizedBox(height: 20),
 
             Center(
-              child: ShinnyButton(
+              child:     ShinnyButton(
                 alternative: true,
                 icons: Icons.create,
                 onPressed: _loading ? null : _submit,
                 text: 'Crear evento',
                 isLoading: _loading,
-                confetti: true,
+                confetti: false,
                 width: 230,
                 height: 60,
-              ),
+              )
             ),
-
-
-
           ],
         ),
       ),

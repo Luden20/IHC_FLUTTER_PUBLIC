@@ -9,14 +9,8 @@ Widget InfoCard(
     BuildContext context,
   ThemeData theme,
   EventoCompletoDTO evento) {
-  final String lugar = evento.Lugar.trim().isEmpty
-      ? 'Lugar sin definir'
-      : evento.Lugar;
-  String _formatFecha(String fechaStr) =>
-      formatPocketbaseDateLocalShort(fechaStr);
-
-  //return GlassMorphismCard(
-  //tintColor: theme.colorScheme.primaryContainer,
+  final String lugar = evento.Lugar.trim().isEmpty ? 'Lugar sin definir' : evento.Lugar;
+  String _formatFecha(String fechaStr) => formatPocketbaseDateLocalShort(fechaStr);
   return Padding(
     padding: const EdgeInsets.all(8.0),
     child: Card(
@@ -48,14 +42,16 @@ Widget InfoCard(
               ),
             ),
             const SizedBox(height: 12),
-            Text(
-              evento.Descripcion,
-              style: theme.textTheme.bodyMedium?.copyWith(
-                fontSize: 16,
-                height: 1.5,
+            if(evento.Descripcion!="")...[
+              Text(
+                evento.Descripcion.trim(),
+                style: theme.textTheme.bodyMedium?.copyWith(
+                  fontSize: 16,
+                  height: 1.5,
+                ),
               ),
-            ),
-            const SizedBox(height: 8),
+              const SizedBox(height: 8),
+            ],
             Divider(
               thickness: 1,
               color: theme.colorScheme.primary.withValues(alpha: 0.3),
